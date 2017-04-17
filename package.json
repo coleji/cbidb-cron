@@ -1,0 +1,23 @@
+{
+  "name": "cbidb-cron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodejs ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/community-boating/cbidb-cron.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/community-boating/cbidb-cron/issues"
+  },
+  "homepage": "https://github.com/community-boating/cbidb-cron#readme",
+  "dependencies": {
+    "ini": "^1.3.4",
+    "moment-timezone": "^0.5.13"
+  }
+}

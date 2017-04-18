@@ -5,6 +5,9 @@ var moment = require('moment-timezone');
 
 const SUNSET_CONFIG = ini.parse(fs.readFileSync('./crons/sunset/ini/private.ini', 'utf-8'));
 
+// takes a 'YYYY-MM-DD' string
+// queries remote api to get sunset time on that date
+// return {dateString : initial arg, }
 module.exports = function(dateString) {
 	return new Promise((resolve, reject) => {
 		const PATH = (function() {
@@ -30,7 +33,10 @@ module.exports = function(dateString) {
 			res.on('end', () => {
 				var response = JSON.parse(resData);
 				if (response.status != 'OK') reject("api status was " + response.status);
-				else resolve(moment(response.results.sunset).tz('America/New_York'));
+				else resolve({
+					dateString,
+					moment: moment(response.results.sunset).tz('America/New_York')
+				});
 			});
 		});
 		req.on('error', (e) => {

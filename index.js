@@ -2,9 +2,15 @@ var sunset = require('./crons/sunset');
 
 sunset();
 
+/*
+var db = require("./db");
 
-
-
+db.getConnection().then(conn => {
+	conn.execute("select * from boat_types", (err, result) => {
+		console.log(result)
+	})
+})
+*/
 
 var moment = require('moment-timezone');
 

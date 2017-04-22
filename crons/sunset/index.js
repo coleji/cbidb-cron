@@ -1,32 +1,30 @@
 var moment = require('moment');
+var promiseSequence = require("promisedotseq");
 
 var getAndParseSunsetTime = require('./getAndParseSunsetTime');
-var getDB = require('../../db').getConnection;
 
-const GET_DATE_STRING_N_DAYS_FROM_NOW = n => moment().add(n, 'days').format("YYYY-MM-DD")
+const ADD_DAYS_AND_PRINT = (moment, days) => moment.add(days, 'days').format("YYYY-MM-DD");
 
-const DAYS_TO_DO = [0, 30, 375];
-
-const sendResultToDB = conn => r => new Promise((resolve, reject) => {
-	console.log(r.moment.format('YYYY-MM-DD HH:mm'))
-	conn.execute(
-		"insert into sunsets (sunset_datetime) values (to_date(:s,'YYYY-MM-DD HH24:MI'))",
-		[r.moment.format('YYYY-MM-DD HH:mm')],
-		{ autoCommit: true },
-		err => {
-			if (err) console.log(err);
-			else console.log("inserted!");
+// I originally intended this as a cron but its really not anymore.
+// Run this function with an array of years and it will get the sunset time for each day of each of those years
+// and print all the times to the console in YYYY-MM-DD HH24:MI format
+// Does not currently do any database I/O although that could be added later.
+// Seems easy enough to do a bazillion years worth of sunset times now and just stow them all.
+module.exports = function(yearsToDo) {
+	const daysToDo = yearsToDo.reduce((days, year) => {
+		var day = moment(year + "-01-01");
+		while(day.format("YYYY") == year) {
+			days.push(day.format("YYYY-MM-DD"))
+			day.add(1, 'days');
 		}
-	)
-});
+		return days;
+	}, []);
 
-module.exports = function() {
-	return Promise.all([getDB()].concat(DAYS_TO_DO.map(
-		d => getAndParseSunsetTime(GET_DATE_STRING_N_DAYS_FROM_NOW(d))
-	))).then(connAndResults => {
-		var conn = connAndResults.shift();
-		return connAndResults.map(sendResultToDB(conn));
-	}).catch(err => {
-		console.log(err)
-	});
+	const promisesFactories = daysToDo.map(d => () => getAndParseSunsetTime(d))
+
+	promiseSequence(promisesFactories).then(results => {
+		results.forEach(result => {
+			console.log(result.moment.format("YYYY-MM-DD HH:mm"))
+		})
+	})
 };

@@ -20,6 +20,7 @@
     "ini": "^1.3.4",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.13",
-    "oracledb": "^1.13.1"
+    "oracledb": "^1.13.1",
+    "promisedotseq": "^0.1.1"
   }
 }

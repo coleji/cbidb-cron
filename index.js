@@ -1,3 +1,4 @@
-var sunset = require('./crons/sunset');
+var sendgridSuppressions = require("./crons/sendgrid-suppressions");
 
-sunset([2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]);
+
+sendgridSuppressions();

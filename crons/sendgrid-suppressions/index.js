@@ -1,38 +1,21 @@
-var ini = require('ini');
-var fs = require('fs');
-var https = require('https');
+var promisedotseq = require("promisedotseq");
+var moment = require("moment");
 
-const querySendgrid = (endpoint, start, end) => new Promise((resolve, reject) => {
-	const iniData = ini.parse(fs.readFileSync('./crons/sendgrid-suppressions/ini/private.ini', 'utf-8')).sendgridApi;
-	var options = {
-		hostname : iniData.hostname,
-		path : iniData.path + endpoint + "?start_time=" + start + "&end_time=" + end + "&limit=500&offset=0",
-		headers : {
-			"Authorization" : iniData.authHeader,
-			"Content-Type" : "application/json"
-		}
-	}
+var querySendgrid = require("./querySendgrid");
+var saveToDB = require("./saveToDB");
 
-	var req = https.request(options, function(res) {
-		var resData = '';
-		res.on('data', (chunk) => {
-			resData += chunk;
-		});
-		res.on('end', () => {
-			var response = JSON.parse(resData);
-			resolve(resData);
-		});
-	});
-
-	req.on('error', function(e) {
-		reject("error with sendgrid req: " + e);
-	})
-
-	req.end();
-});
+const dataSets = ["blocks", "bounces", "invalid_emails", "spam_reports"];
 
 module.exports = () => {
-	querySendgrid('blocks', 1485227230, 1485227230).then(res => {
-		console.log(res)
+	const startDateUnix = moment().subtract(1, 'days').startOf('day').unix();
+	const endDateUnix = moment().startOf('day').unix();
+	console.log("Current Time is " + moment() + ";  querying from " + startDateUnix + " to " + endDateUnix);
+	Promise.all(dataSets.map(dataSet => querySendgrid(dataSet, startDateUnix, endDateUnix)))
+	.then(results => Promise.all(results.map(
+		(r, i) => saveToDB(dataSets[i], JSON.parse(r))
+	))).then(result => {
+		console.log("Successfully inserted!")
+	}).catch(err => {
+		console.log("Error inserting: " + err)
 	})
 }

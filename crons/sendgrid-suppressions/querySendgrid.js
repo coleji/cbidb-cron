@@ -19,6 +19,7 @@ module.exports = (endpoint, start, end) => new Promise((resolve, reject) => {
 			resData += chunk;
 		});
 		res.on('end', () => {
+			console.log(resData);
 			var response = JSON.parse(resData);
 			resolve(resData);
 		});
